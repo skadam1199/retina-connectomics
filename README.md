@@ -50,3 +50,72 @@ python3 src/infer_annotations.py \
 - top segment hubs by mention count
 - state layer summary (image/segmentation/annotation)
 - class-to-class transition matrix CSV
+
+## Orientation Relations Across Many Cells
+
+Use this script to compute orientation relationships between cells listed in a
+segment-ID text file (one numeric ID per line):
+
+```bash
+.venv/bin/python src/orientation_relations.py \
+  --segment-ids valid_segment_ids.txt \
+  --output-dir outputs/all_cells \
+  --run-flatone-missing \
+  --quiet-flatone \
+  --out-per-cell-csv outputs/orientation/per_cell_orientation.csv \
+  --out-pairwise-csv outputs/orientation/pairwise_orientation_angles.csv \
+  --out-matrix-csv outputs/orientation/orientation_angle_matrix.csv \
+  --out-summary-json outputs/orientation/orientation_summary.json
+```
+
+Notes:
+- `--run-flatone-missing` fetches/creates skeletons for IDs not yet present.
+- `--skeleton-kind auto` is the default and prefers `skeleton_warped.npz`.
+- Pairwise angle interpretation:
+  - `< 15°`: aligned
+  - `15° to <45°`: oblique
+  - `>= 45°`: near-orthogonal
+
+## 🚀 Full Command Inventory (Added)
+
+### flatone CLI
+- `flatone <SEGMENT_ID>` (base pipeline: mesh → skeleton → warp)
+- `flatone <SEGMENT_ID> --warp-mesh` (also warp mesh geometry)
+- `flatone <SEGMENT_ID> --mapping j1|j2` (warping mapping algorithm)
+- `flatone <SEGMENT_ID> --output-dir <path>` (custom output folder)
+- `flatone add-token` (save EyeWire CAVE auth token)
+- `flatone view3d [--warped]` (visualize output in 3D, if available)
+
+### Python scripts in `src/`
+- `python src/infer_annotations.py --csv annotations_flat.csv --state state.json --top-n 20` (connectivity report)
+- `python src/infer_annotations.py --out-md ... --out-json ... --out-transition-matrix-csv ...` (save reports)
+- `python src/orientation_relations.py --segment-ids <file> --output-dir <dir> --run-flatone-missing ...` (orientation and pairwise angles)
+- `python src/download_swcs.py --segment-ids-file <file> --export-dir <dir> --flatone-output-dir <dir> --run-flatone-missing` (export SWC files from flatone outputs)
+- `python src/check_eyewire_token.py --datastack stroeh_mouse_retina` (verify datastack access)
+- `python src/validate_segment_id.py --csv annotations_flat.csv <ID1> <ID2> ...` (check segment presence)
+
+### Helper script
+- `scripts/prove_flatone_pipeline.sh` (end-to-end pipeline validation)
+
+## 🧠 Key Concepts (Added)
+- **Domain**: mouse retina connectomics, analyzing neuron morphology and synaptic connections from EyeWire II EM datasets.
+- **Cell classes**: BK (OFF bipolar), CB (cone bipolar), GC (ganglion), AC (amacrine), A2, WAC, etc.
+- **Data path**: segment IDs → mesh from CloudVolume/CAVE → skeleton via `skeliner` → warp to SAC layers via `pywarper`.
+- **Analysis path**:
+  - `infer_annotations.py`: converts Neuroglancer CSV annotations into transition matrices and top connection summaries.
+  - `orientation_relations.py`: PCA of skeleton node positions for 3D/2D axes, angles, and alignment categories.
+- **Assets**: OBJ (mesh), SWC/NPZ (skeleton), CSV/JSON/MD output (reports), `state.json` from Neuroglancer.
+- **Orientation categories**: aligned / oblique / near-orthogonal (by angle thresholds).
+
+## 🧩 Data structure expectations
+- `data/segment_ids/*.txt`: one segment ID per line, `#` comments supported.
+- `outputs/<segment_id>/`: generated data per cell (mesh.obj, skeleton.swc/.npz, warped outputs, PNG visualizations).
+- `outputs/orientation/`: aggregated orientation data (per cell, pairwise, matrix, summary)
+- `outputs/interaction_matrix.csv`: cell-type transition matrix.
+
+## ⚙️ Environment hints
+- Python 3.10+
+- `pip install -e flatone` or via `pyproject.toml`
+- dependencies: `caveclient`, `cloud-volume`, `skeliner`, `pywarper`, `numpy`, `matplotlib`
+- local prerequisites: `suite-sparse` for skeletonization.
+
