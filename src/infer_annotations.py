@@ -178,6 +178,7 @@ def parse_csv(csv_path: Path) -> dict[str, Any]:
 
     return {
         "annotation_stats": stats.__dict__,
+        "unique_segment_ids": sorted(segment_mentions.keys(), key=int),
         "top_descriptions": [
             {"description": desc, "count": cnt}
             for desc, cnt in description_counts.most_common()
@@ -311,13 +312,13 @@ def main() -> int:
     parser.add_argument(
         "--csv",
         type=Path,
-        default=Path("/Users/supriyanagnathkadam/Downloads/annotations_flat.csv"),
-        help="Path to annotations_flat.csv",
+        required=True,
+        help="Path to annotations_flat.csv (exported from Neuroglancer)",
     )
     parser.add_argument(
         "--state",
         type=Path,
-        default=Path("/Users/supriyanagnathkadam/Downloads/state.json"),
+        required=True,
         help="Path to Neuroglancer state.json",
     )
     parser.add_argument(
@@ -343,6 +344,15 @@ def main() -> int:
         type=Path,
         default=None,
         help="Optional path to write source->target class interaction matrix CSV",
+    )
+    parser.add_argument(
+        "--out-segment-ids",
+        type=Path,
+        default=None,
+        help=(
+            "Optional path to write all unique segment IDs (one per line, numerically sorted). "
+            "Use this file as --segment-ids input to orientation_relations.py."
+        ),
     )
     args = parser.parse_args()
 
@@ -379,6 +389,11 @@ def main() -> int:
             args.out_transition_matrix_csv,
         )
         print(f"Wrote transition matrix CSV to: {args.out_transition_matrix_csv}")
+    if args.out_segment_ids:
+        seg_ids = summary["annotations"]["unique_segment_ids"]
+        args.out_segment_ids.parent.mkdir(parents=True, exist_ok=True)
+        args.out_segment_ids.write_text("\n".join(seg_ids) + "\n", encoding="utf-8")
+        print(f"Wrote {len(seg_ids)} segment IDs to: {args.out_segment_ids}")
 
     return 0
 

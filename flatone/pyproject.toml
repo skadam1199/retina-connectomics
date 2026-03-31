@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "flatone"
+version = "0.1.13"
+description = "A command-line tool to flatten one Eyewire2 neuron automatically."
+authors = []
+requires-python = ">=3.10.0"
+dependencies = [
+    "caveclient>=7.8.0",
+    "cloud-volume>=12.3.1",
+    "matplotlib>=3.8.0",
+    "numpy>=1.26.0",
+    "pywarper[scikit-sparse]>=0.2.4",
+    "skeliner[3d]>=0.2.3",
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+    "twine",
+    "ipykernel>=6.29.5",
+]
+
+[project.scripts]
+flatone = "flatone.cli:main"

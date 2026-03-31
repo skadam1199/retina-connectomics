@@ -28,8 +28,8 @@ def main() -> int:
     parser.add_argument(
         "--csv",
         type=Path,
-        default=Path("/Users/supriyanagnathkadam/Downloads/annotations_flat.csv"),
-        help="Path to flat annotations CSV (default: %(default)s)",
+        required=True,
+        help="Path to flat annotations CSV",
     )
     parser.add_argument(
         "segment_ids",
