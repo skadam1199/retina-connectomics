@@ -1,4 +1,4 @@
-# retina-connectomics
+n. # retina-connectomics
 
 Computational pipeline for analyzing 3D neuron morphology and orientation relationships in mouse retina EM data (EyeWire II).
 
